@@ -24,8 +24,13 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      # No VITE_SUPABASE_* env → the app builds in mock mode (works with no backend).
+      # If the repo Variables VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are set, the build
+      # goes live against that Supabase project; if unset they're empty → mock mode.
+      # (Anon/publishable key + URL are public client config, so repo Variables are fine.)
       - run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -110,8 +110,9 @@ but not built; manual "add driver" is disabled in Supabase mode (drivers self-on
 - **Frontend → GitHub Pages** (mock mode, no backend): pushing `main` runs
   `.github/workflows/deploy.yml` (build → Pages). Live at the URL up top. Vite `base: './'`
   makes assets work under the `/dichung-admin/` subpath.
-- **Go live with a real backend:** create a hosted Supabase project (`supabase login` →
-  `supabase link --project-ref <ref>` → `supabase db push`), register the access-token hook +
-  an SMS provider, then build the frontend with `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
-  set (add them as GitHub repo *Variables* so the Pages build picks them up). See
-  [supabase/README.md](supabase/README.md).
+- **Go live with a real backend:** after a one-time `npx supabase login`, run
+  **`scripts/go-live.sh <project-ref>`** — it links the project, pushes migrations, and deploys
+  the `match-trip` function, then prints the 3 secret-dependent steps (enable the access-token
+  hook + an SMS provider; insert the `app_config` rows; set the GitHub repo *Variables*
+  `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` — the deploy workflow already reads them, so
+  the next push builds a live Pages site). See [supabase/README.md](supabase/README.md).

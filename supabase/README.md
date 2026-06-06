@@ -62,6 +62,11 @@ Reset DB (re-run migrations + seed): `npx supabase db reset` (re-insert `app_con
 
 ## Deploy to a hosted project
 
+**Easy path:** `npx supabase login` once, then `scripts/go-live.sh <project-ref>` from the repo
+root — it runs the link + db push + function deploy below and prints the remaining secret steps.
+
+Manual equivalent:
+
 ```bash
 supabase link --project-ref <ref>
 supabase db push                 # applies migrations
