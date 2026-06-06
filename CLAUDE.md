@@ -9,9 +9,15 @@ npm install        # install deps
 npm run dev        # Vite dev server at http://localhost:5173
 npm run build      # production bundle → dist/
 npm run preview    # serve the built bundle
+npm run test:match # matching-engine unit tests (node --test)
+
+# Supabase (CLI is a dev-dependency; needs a Docker runtime for `start`)
+npm run db:start   # supabase start (local stack)   ·  db:stop / db:reset
+npm run fn:serve   # supabase functions serve match-trip
 ```
 
-There is no test runner, linter, or formatter configured.
+No linter/formatter is configured. The only automated tests are the matching unit tests
+(`npm run test:match`) — pure logic, the one backend piece verifiable without a DB.
 
 ## What this is
 
@@ -19,10 +25,12 @@ A production React (Vite) recreation of the **ĐiChung Admin Console** — the d
 admin surface (quản trị / kế toán / CSKH) for an intercity ride-pooling & whole-car
 charter marketplace in central Vietnam (corridors Tam Kỳ ⇄ Đà Nẵng and Hội An – Đà Nẵng – Huế).
 
-It was hand-built from a Claude Design handoff bundle (still in `_design_bundle/`,
-gitignored). The bundle covers 5 surfaces; **only the Admin surface is implemented here.**
-The other prototypes (Customer/Driver apps, Dispatch board, Backend doc) live in
-`_design_bundle/dichung-project/project/` and are the source of truth if those get built.
+It was hand-built from a Claude Design handoff bundle (still in `_design_bundle/`, gitignored,
+5 surfaces). **Built & deployed:** this **Admin web app** (which absorbs the design's separate
+*Dispatch* surface as a module) **+ a real Supabase backend**. **Still prototype-only** (not
+built): the **App Khách (Customer)** and **App Tài xế (Driver)** React Native mobile apps —
+their HTML prototypes in `_design_bundle/dichung-project/project/` are the source of truth if
+they get built (they would use this same Supabase backend).
 
 ## Architecture
 
@@ -38,8 +46,11 @@ pattern as the store): `useMockBoard` = the simulated board from `data/dispatchB
 walk-in sim, local pooling) vs `useLiveBoard` = live trips/bookings/drivers from Postgres via
 TanStack Query + a realtime channel, mutations in `lib/dispatchApi.js` (depart/complete/approve,
 ⚡ Ghép ngay → invoke `match-trip`, **+ Khách đi ngay** → insert an `on_demand` booking whose
-INSERT trigger auto-matches). The fleet map's vehicle MOVEMENT is always simulated (no GPS
-source yet; production = a maps SDK + `trip:{id}` realtime). Shared pill: `components/Pill.jsx`.
+INSERT trigger auto-matches). The fleet map is a **real MapLibre GL + OpenFreeMap map** (free,
+no API key, lazy-loaded), real city coords, **real device GPS** via the Geolocation API
+("📍 Vị trí của tôi"), and a Supabase Realtime **broadcast** channel (`fleet`) sharing
+positions across devices; only the *demo fleet's* movement is simulated (no driver-app GPS
+feed yet). Shared pill: `components/Pill.jsx`.
 
 **supabase-js auth-lock gotcha:** never `await` a Supabase query directly inside
 `onAuthStateChange` — it deadlocks the auth lock (symptom: stuck on "Đang tải…"). `auth.jsx`
@@ -142,3 +153,24 @@ here). Gotchas learned bringing it up (all already fixed in the committed files)
   needs superuser and isn't settable on hosted) — insert the two rows once per env.
 
 `npm run test:match` runs the matching unit tests (the one backend logic verifiable purely).
+
+## Deployment & live environment
+
+- **Live site:** https://dechiuinfo-lang.github.io/dichung-admin/ (GitHub Pages).
+- **Repo:** `github.com/dechiuinfo-lang/dichung-admin` (public). `.github/workflows/deploy.yml`
+  builds + deploys on every push to `main`. The build is **live** when the repo *Variables*
+  `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` are set (they are) — unset ⇒ mock. `vite base:'./'`.
+- **Hosted Supabase:** project `DiChung`, ref `kximwqxdsaqijlmarohe` (Singapore, free tier).
+  Provisioned end-to-end and verified: migrations pushed, `config push` enabled the auth hook +
+  test-OTP, `match-trip` deployed, demo data seeded (12 users / 7 drivers / …), `app_config`
+  set. Login `0909 000 001` / OTP `123456` returns a JWT with `user_role=admin`.
+- **Go-live tooling:** `scripts/go-live.sh <ref>` (after `npx supabase login`) does
+  link + db push + functions deploy and prints the remaining secret steps.
+
+⚠️ **Security caveats (this is a demo/portfolio deployment):**
+- The fixed **test-OTP `123456`** is a login **backdoor on a PRODUCTION project** (knowingly
+  accepted for the demo) → **do not store real customer data**. To harden: remove
+  `[auth.sms.test_otp]` from `config.toml`, `config push`, and configure a real SMS provider.
+- The DB password used to provision the hosted DB was **pasted in chat in a prior session →
+  treat as exposed; reset it** (Dashboard → Settings → Database). It isn't used at runtime
+  (the app uses only the anon/publishable + service keys), so resetting is safe.
