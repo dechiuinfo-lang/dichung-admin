@@ -7,3 +7,6 @@ _design_bundle
 .env.*.local
 supabase/.temp
 supabase/.branches
+
+# Claude Code runtime
+.claude/scheduled_tasks.lock

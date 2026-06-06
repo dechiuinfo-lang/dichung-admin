@@ -50,13 +50,13 @@ token_verifications = 30 # OTP verification attempts per 5 min per IP
 sign_in_sign_ups = 30    # sign-in/up attempts per 5 min per IP
 
 # Deterministic OTPs for local dev (no SMS provider needed). The admin is +84909000001.
-# Keys MUST be exact E.164 strings: '+' country code + number, no spaces/hyphens.
+# Keys are E.164 WITHOUT the leading '+' (GoTrue strips it; the hosted API requires no '+').
 [auth.sms.test_otp]
-"+84909000001" = "123456"
-"+84909000002" = "123456"
-"+84909000003" = "123456"
-"+84909000004" = "123456"
-"+84909000005" = "123456"
+"84909000001" = "123456"
+"84909000002" = "123456"
+"84909000003" = "123456"
+"84909000004" = "123456"
+"84909000005" = "123456"
 
 # Inject profiles.role into the JWT as the `user_role` claim. The function, its GRANTs, and
 # the supabase_auth_admin RLS read-policy are created by the auth_hook + rls migrations —
