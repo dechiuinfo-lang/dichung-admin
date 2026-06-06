@@ -4,6 +4,11 @@ Production React (Vite) recreation of the `DiChung Admin.html` design prototype 
 the desktop admin console for quản trị / kế toán / CSKH of the ĐiChung intercity
 ride-pooling & charter marketplace (corridors Tam Kỳ ⇄ Đà Nẵng and Hội An – Đà Nẵng – Huế).
 
+**Live demo (mock mode):** https://dechiuinfo-lang.github.io/dichung-admin/ — auto-deployed
+to GitHub Pages from `main` (`.github/workflows/deploy.yml`); no backend, so it runs on mock
+data. The fleet map there is a real **MapLibre + OpenFreeMap** map (no API key) with live
+**device GPS** via the browser Geolocation API.
+
 ## Run
 
 ```bash
@@ -96,7 +101,17 @@ the module shapes. Point the app at a project via env vars and it goes live. See
 > invoke and via the auto-trigger. Setup details (incl. the `SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN`
 > env + `app_config` rows) are in [supabase/README.md](supabase/README.md).
 
-Remaining (phase-1 scope notes in `supabase/README.md`): the 4 edge functions
-(`match-trip`, `quote-price`, `payment-webhook`, `settle-trip`) are documented but not
-implemented (the admin doesn't invoke them), manual "add driver" is disabled in Supabase mode
-(drivers self-onboard via KYC), and realtime channels belong to the other surfaces.
+Remaining (phase-1 scope notes in `supabase/README.md`): `match-trip` is implemented
+(pooling engine + auto-trigger); `quote-price`/`payment-webhook`/`settle-trip` are documented
+but not built; manual "add driver" is disabled in Supabase mode (drivers self-onboard via KYC).
+
+## Deploy
+
+- **Frontend → GitHub Pages** (mock mode, no backend): pushing `main` runs
+  `.github/workflows/deploy.yml` (build → Pages). Live at the URL up top. Vite `base: './'`
+  makes assets work under the `/dichung-admin/` subpath.
+- **Go live with a real backend:** create a hosted Supabase project (`supabase login` →
+  `supabase link --project-ref <ref>` → `supabase db push`), register the access-token hook +
+  an SMS provider, then build the frontend with `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`
+  set (add them as GitHub repo *Variables* so the Pages build picks them up). See
+  [supabase/README.md](supabase/README.md).
