@@ -1,0 +1,29 @@
+{
+  "name": "dichung-admin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "ĐiChung Admin Console — quản trị / kế toán / CSKH (React web)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:match": "node --test supabase/functions/match-trip/matching.test.mjs",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "fn:serve": "supabase functions serve match-trip"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
+    "@tanstack/react-query": "^5.100.14",
+    "maplibre-gl": "^4.7.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "supabase": "^2.105.0",
+    "vite": "^5.4.11"
+  }
+}

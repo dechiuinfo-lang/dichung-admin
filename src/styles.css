@@ -1,0 +1,143 @@
+/* ĐiChung Admin — design tokens (light mode) lifted verbatim from the prototype */
+:root {
+  --brand: #0d9488;
+  --brand-dark: #0f766e;
+  --brand-cyan: #22d3ee;
+  --brand-soft: #d4f3ee;
+  --amber: #d97706;
+  --amber-dark: #b45309;
+  --amber-soft: #fdecd2;
+  --ok: #16a34a;
+  --ok-dark: #15803d;
+  --ok-soft: #dcfce7;
+  --bg: #eef2f6;
+  --card: #ffffff;
+  --ink: #0f1b22;
+  --muted: #6b7d89;
+  --line: #e6ecf1;
+  --chip: #eef2f6;
+  --shadow: 0 1px 2px rgba(13, 27, 34, 0.05), 0 4px 14px -6px rgba(13, 27, 34, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  min-height: 100%;
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cdd6de;
+  border-radius: 99px;
+}
+
+input {
+  font-family: inherit;
+}
+
+/* ── Responsive grids ──
+   Ratio comes from an inline `--cols` custom property so a media query in CSS can
+   still override the actual grid-template-columns at narrow widths (an inline
+   grid-template-columns could not be overridden by a stylesheet rule). */
+.split {
+  display: grid;
+  grid-template-columns: var(--cols, 1fr 1fr);
+  gap: 16px;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 1080px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Dispatch board grids ── */
+.dispatch-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.dispatch-cols {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.fleet-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .fleet-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 1080px) {
+  .dispatch-kpis { grid-template-columns: repeat(3, 1fr); }
+  .dispatch-cols { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
+  .dispatch-kpis { grid-template-columns: 1fr 1fr; }
+  .dispatch-cols { grid-template-columns: 1fr; }
+}
+
+/* ── Collapsible sidebar (icon rail under a breakpoint) ── */
+.sidebar {
+  width: 230px;
+}
+@media (max-width: 820px) {
+  .sidebar {
+    width: 64px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .sidebar .collapse-text {
+    display: none;
+  }
+  .sidebar .nav-btn {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* ── Animations ── */
+@keyframes modalPop {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes toastUp {
+  from { transform: translate(-50%, 8px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}

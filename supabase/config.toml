@@ -1,0 +1,82 @@
+# Supabase CLI config — ĐiChung. `supabase start` (local) → `supabase db push` (cloud).
+project_id = "dichung"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+# Captures outbound emails/SMS locally (OTP codes land here at http://localhost:54324)
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_signup = true
+
+# Phone OTP sign-in (Admin Console auth method).
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+template = "Mã ĐiChung của bạn: {{ .Code }}"
+
+# A provider must be declared for phone login to be enabled at all. Locally we use dummy
+# Twilio creds — the [auth.sms.test_otp] map below short-circuits real sending for those
+# numbers, so no SMS is ever sent. In production, set real creds via env.
+[auth.sms.twilio]
+enabled = true
+account_sid = "ac_local_test"
+message_service_sid = "mg_local_test"
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+
+# Brute-force protection. Tune for production; Supabase Cloud also enforces platform limits.
+[auth.rate_limit]
+sms_sent = 30            # SMS/OTP messages sent per hour
+token_verifications = 30 # OTP verification attempts per 5 min per IP
+sign_in_sign_ups = 30    # sign-in/up attempts per 5 min per IP
+
+# Deterministic OTPs for local dev (no SMS provider needed). The admin is +84909000001.
+# Keys MUST be exact E.164 strings: '+' country code + number, no spaces/hyphens.
+[auth.sms.test_otp]
+"+84909000001" = "123456"
+"+84909000002" = "123456"
+"+84909000003" = "123456"
+"+84909000004" = "123456"
+"+84909000005" = "123456"
+
+# Inject profiles.role into the JWT as the `user_role` claim. The function, its GRANTs, and
+# the supabase_auth_admin RLS read-policy are created by the auth_hook + rls migrations —
+# apply migrations BEFORE this hook is active. (On hosted projects this config is not pushed
+# by `db push`; register the hook in Dashboard → Authentication → Hooks.)
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+
+[realtime]
+enabled = true
+
+[storage]
+enabled = true
+
+[edge_runtime]
+enabled = true
+
+# Pooling function. verify_jwt=false so pg_cron / the bookings trigger / dispatch can call it;
+# callers authenticate with the service-role key (see invoke_match_trip in the matching migration).
+[functions.match-trip]
+verify_jwt = false
+
