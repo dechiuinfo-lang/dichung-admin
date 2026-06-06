@@ -57,6 +57,7 @@ export default function FleetMap() {
   const containerRef = useRef(null);
   const ref = useRef({ map: null, gl: null, markers: {}, me: null, remote: {}, ch: null });
   const [fleet, setFleet] = useState(seedFleet);
+  const [remote, setRemote] = useState({}); // live positions broadcast by other devices
   const [ready, setReady] = useState(false);
   const [tracking, setTracking] = useState(false);
   const [err, setErr] = useState('');
@@ -112,20 +113,29 @@ export default function FleetMap() {
     });
   }, [fleet, ready]);
 
-  // Supabase Realtime: share/receive positions across devices (live mode)
+  // Supabase Realtime: receive positions broadcast by other devices (live mode)
   useEffect(() => {
     if (!isSupabaseConfigured || !ready) return undefined;
-    const { map, gl, remote } = ref.current;
     const ch = supabase.channel('fleet', { config: { broadcast: { self: false } } });
     ch.on('broadcast', { event: 'pos' }, ({ payload }) => {
       if (!payload?.id) return;
-      if (!remote[payload.id]) remote[payload.id] = new gl.Marker({ element: carEl('#16a34a') }).setLngLat([payload.lng, payload.lat]).addTo(map);
-      else remote[payload.id].setLngLat([payload.lng, payload.lat]);
+      setRemote((r) => ({ ...r, [payload.id]: { lng: payload.lng, lat: payload.lat, driver: payload.driver || 'Realtime' } }));
     });
     ch.subscribe();
     ref.current.ch = ch;
     return () => { supabase.removeChannel(ch); ref.current.ch = null; };
   }, [ready]);
+
+  // sync markers for remote (broadcast) devices — green
+  useEffect(() => {
+    const { map, gl, markers } = ref.current;
+    if (!ready || !map || !gl) return;
+    Object.entries(remote).forEach(([id, p]) => {
+      const key = 'r:' + id;
+      if (!markers[key]) markers[key] = new gl.Marker({ element: carEl('#16a34a') }).setLngLat([p.lng, p.lat]).addTo(map);
+      else markers[key].setLngLat([p.lng, p.lat]);
+    });
+  }, [remote, ready]);
 
   // REAL device GPS via the Geolocation API
   const watchRef = useRef(null);
@@ -154,6 +164,7 @@ export default function FleetMap() {
 
   const enroute = fleet.filter((v) => v.status === 'enroute').length;
   const totalPax = fleet.reduce((n, v) => n + v.pax, 0);
+  const remoteList = Object.entries(remote);
 
   return (
     <div className="fleet-grid">
@@ -167,13 +178,23 @@ export default function FleetMap() {
           {err && <span style={{ fontSize: 12, color: '#b91c1c', background: 'rgba(255,255,255,.9)', padding: '4px 8px', borderRadius: 8 }}>{err}</span>}
         </div>
         <div style={{ position: 'absolute', right: 12, top: 12, zIndex: 1, display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.92)', borderRadius: 10, padding: '7px 12px', fontSize: 12.5, fontWeight: 700, color: 'var(--brand-dark)' }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ok)', boxShadow: '0 0 0 4px color-mix(in oklab,var(--ok) 18%,transparent)' }} /> {enroute} xe đang chạy · {totalPax} khách
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ok)', boxShadow: '0 0 0 4px color-mix(in oklab,var(--ok) 18%,transparent)' }} /> {enroute} xe đang chạy · {totalPax} khách{remoteList.length ? ` · 📡 ${remoteList.length} realtime` : ''}
         </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 10 }}>Đội xe đang hoạt động ({fleet.length})</div>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 10 }}>Đội xe đang hoạt động ({fleet.length + remoteList.length})</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {remoteList.map(([id, p]) => (
+            <div key={id} onClick={() => ref.current.map?.easeTo({ center: [p.lng, p.lat], zoom: 13 })} style={{ background: 'var(--ok-soft)', border: '1px solid var(--ok)', borderRadius: 12, padding: '11px 13px', boxShadow: 'var(--shadow)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 9 }}>
+              <span style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--ok)', color: '#fff', display: 'grid', placeItems: 'center', flexShrink: 0 }}>{AdIc.car(17)}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 13.5 }}>{p.driver}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>{p.lat.toFixed(4)}, {p.lng.toFixed(4)}</div>
+              </div>
+              <Pill tone="ok">📡 Trực tiếp</Pill>
+            </div>
+          ))}
           {fleet.map((v) => {
             const col = v.status === 'forming' ? 'var(--amber)' : '#2563eb';
             const pct = Math.round((v.pax / v.cap) * 100);
