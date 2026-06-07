@@ -117,8 +117,9 @@ the fill threshold or the cutoff time.
 
 ## Not yet wired (intentional, phase-1 scope)
 
-- **Edge functions** `quote-price`, `payment-webhook`, `settle-trip` are documented in the
-  backend doc but not implemented (`match-trip` ✅ is). The admin doesn't invoke them.
+- **Edge functions:** `match-trip` ✅ and `quote-price` ✅ are built (pure + unit-tested +
+  deployed). `payment-webhook` + `settle-trip` are documented but not built (need a payment
+  gateway). The admin surface doesn't invoke quote-price yet — it's for the customer booking flow.
 - **Adding a driver** from the admin is disabled in Supabase mode: drivers self-register via
   the driver app's KYC flow and admin *approves* them (the real phase-1 flow). Creating a
   `profiles` row needs a matching `auth.users` row, which the client can't insert directly.

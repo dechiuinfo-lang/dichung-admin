@@ -80,3 +80,7 @@ enabled = true
 [functions.match-trip]
 verify_jwt = false
 
+# Fare quotes are non-sensitive pricing math — callable before auth.
+[functions.quote-price]
+verify_jwt = false
+

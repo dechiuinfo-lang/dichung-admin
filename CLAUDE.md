@@ -9,15 +9,15 @@ npm install        # install deps
 npm run dev        # Vite dev server at http://localhost:5173
 npm run build      # production bundle → dist/
 npm run preview    # serve the built bundle
-npm run test:match # matching-engine unit tests (node --test)
+npm test           # backend engine unit tests: matching + pricing (node --test)
 
 # Supabase (CLI is a dev-dependency; needs a Docker runtime for `start`)
 npm run db:start   # supabase start (local stack)   ·  db:stop / db:reset
 npm run fn:serve   # supabase functions serve match-trip
 ```
 
-No linter/formatter is configured. The only automated tests are the matching unit tests
-(`npm run test:match`) — pure logic, the one backend piece verifiable without a DB.
+No linter/formatter is configured. The only automated tests are the matching + pricing engine
+unit tests (`npm test`) — pure logic, the backend pieces verifiable without a DB.
 
 ## What this is
 
@@ -128,17 +128,24 @@ admin tables) and `seed.sql` (idempotent; mirrors the mock; seeds `auth.users` w
 OTP login works). Local OTP codes are fixed to `123456` via `config.toml` `[auth.sms.test_otp]`;
 admin phone is `+84909000001`. See `supabase/README.md`.
 
-Edge functions live in `supabase/functions/`. **`match-trip`** (the pooling engine) IS
-implemented: the pure, unit-tested algorithm in `functions/_shared/matching.mjs` (best-fit
-pooling + driver assignment + pickup sequencing) wrapped by a Deno handler `match-trip/index.ts`,
-auto-invoked by a `bookings` INSERT trigger + a 1-minute `pg_cron` tick (migration
-`...094000_matching.sql`). The other three (`quote-price`, `payment-webhook`, `settle-trip`)
-are not implemented. Realtime publication covers the admin + matching tables; the named
-channels (`trip:{id}` etc.) belong to the other surfaces. Spec: `_design_bundle/.../DiChung Backend.html`.
+Edge functions live in `supabase/functions/` (both deployed on hosted + verified). Two of the
+four are implemented, each as a **pure, unit-tested algorithm in `_shared/` wrapped by a thin
+Deno handler**:
+- **`match-trip`** (pooling engine) — `_shared/matching.mjs` (best-fit pooling + driver
+  assignment + pickup sequencing), auto-invoked by a `bookings` INSERT trigger + 1-min
+  `pg_cron` tick (migration `...094000_matching.sql`).
+- **`quote-price`** (pricing source of truth) — `_shared/pricing.mjs` (ghép = `max(60k,
+  round10k(km×1700))`×pax, bao scales by leg, 17–19h surge, promo pct/fixed-cap, VAT 10%
+  inclusive, round-trip ×1.9). `verify_jwt=false` (non-sensitive). Currently uses embedded
+  rules; DB-driven surge/promo enrichment is a TODO.
 
-When changing the algorithm, edit `matching.mjs` and run its Node test
-(`node --test supabase/functions/match-trip/matching.test.mjs`) — it's the only
-backend logic verifiable in this environment.
+`payment-webhook` + `settle-trip` are **not** built (need a payment gateway). Realtime
+publication covers the admin + matching tables; named channels (`trip:{id}` etc.) belong to
+the other surfaces. Spec: `_design_bundle/.../DiChung Backend.html`.
+
+Both engines are pure and Node-testable — the only backend logic verifiable without a DB.
+Edit the `.mjs` in `_shared/` and run **`npm test`** (runs both suites; `test:match` runs just
+matching).
 
 ## Verification
 
@@ -153,7 +160,7 @@ here). Gotchas learned bringing it up (all already fixed in the committed files)
 - The match-trip auto-trigger reads URL/key from the `app_config` table (not a DB GUC, which
   needs superuser and isn't settable on hosted) — insert the two rows once per env.
 
-`npm run test:match` runs the matching unit tests (the one backend logic verifiable purely).
+`npm test` runs the matching + pricing engine unit tests (the backend logic verifiable purely).
 
 ## Deployment & live environment
 

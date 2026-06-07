@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:match": "node --test supabase/functions/match-trip/matching.test.mjs",
+    "test": "node --test supabase/functions/match-trip/matching.test.mjs supabase/functions/quote-price/pricing.test.mjs",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
