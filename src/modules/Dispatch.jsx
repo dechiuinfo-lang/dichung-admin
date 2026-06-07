@@ -3,6 +3,7 @@ import { useData } from '../store.jsx';
 import { VND } from '../utils/format.js';
 import Pill from '../components/Pill.jsx';
 import FleetMap from './FleetMap.jsx';
+import Analytics from './Analytics.jsx';
 import { useDispatchBoard } from '../data/useDispatchBoard.js';
 import { seatsUsed, DIRSHORT } from '../data/dispatchBoard.js';
 
@@ -99,7 +100,7 @@ function Empty({ text }) {
 function ViewTabs({ view, setView }) {
   return (
     <div style={{ display: 'flex', gap: 4, background: 'var(--chip)', borderRadius: 11, padding: 4 }}>
-      {[['board', 'Điều phối'], ['fleet', 'Bản đồ đội xe']].map(([k, l]) => {
+      {[['board', 'Điều phối'], ['fleet', 'Bản đồ đội xe'], ['analytics', 'Phân tích']].map(([k, l]) => {
         const on = view === k;
         return <button key={k} onClick={() => setView(k)} style={{ border: 'none', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, fontSize: 13, background: on ? 'var(--card)' : 'transparent', color: on ? 'var(--brand-dark)' : 'var(--muted)', boxShadow: on ? '0 1px 3px rgba(0,0,0,.1)' : 'none' }}>{l}</button>;
       })}
@@ -151,7 +152,7 @@ export default function MDispatch() {
         </div>
       </div>
 
-      {view === 'fleet' ? <FleetMap /> : (
+      {view === 'fleet' ? <FleetMap /> : view === 'analytics' ? <Analytics /> : (
         <>
           {/* KPIs */}
           <div className="dispatch-kpis" style={{ marginBottom: 18 }}>
