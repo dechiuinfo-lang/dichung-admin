@@ -39,9 +39,10 @@ holds a single `page` state string that selects one of 8 module components from 
 map (7 admin modules + the **Điều phối / Dispatch board**). Each module lives in `src/modules/`.
 Nav items are role-gated by `ROLE_MODULES` in `App.jsx` (mock mode = admin, sees all).
 
-The **Dispatch surface** (`modules/Dispatch.jsx`) has two views via an in-module tab toggle:
-the **board** (5 KPIs, 3 columns, ⚡ Ghép ngay, **+ Khách đi ngay**) and the **fleet map**
-(`modules/FleetMap.jsx`). The board is **dual-mode behind `data/useDispatchBoard.js`** (same
+The **Dispatch surface** (`modules/Dispatch.jsx`) has three views via an in-module tab toggle:
+the **board** (5 KPIs, 3 columns, ⚡ Ghép ngay, **+ Khách đi ngay**), the **fleet map**
+(`modules/FleetMap.jsx`), and **Phân tích / Analytics** (`modules/Analytics.jsx` — static
+figures recreated from the design; production = aggregation over trips/bookings). The board is **dual-mode behind `data/useDispatchBoard.js`** (same
 pattern as the store): `useMockBoard` = the simulated board from `data/dispatchBoard.js` (~7s
 walk-in sim, local pooling) vs `useLiveBoard` = live trips/bookings/drivers from Postgres via
 TanStack Query + a realtime channel, mutations in `lib/dispatchApi.js` (depart/complete/approve,

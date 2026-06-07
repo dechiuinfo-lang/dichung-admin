@@ -37,7 +37,7 @@ lifted faithfully (tokens, copy, spacing, icons, interaction logic) from the pro
 | Module | File | Notes |
 |---|---|---|
 | Tổng quan | `src/modules/Overview.jsx` | 4 KPIs, 7-day revenue bar chart, activity feed |
-| Điều phối | `src/modules/Dispatch.jsx` | board (live trips/pending/fleet from Postgres in Supabase mode, simulated in mock; ⚡ Ghép ngay, + Khách đi ngay) + fleet map (`FleetMap.jsx`) |
+| Điều phối | `src/modules/Dispatch.jsx` | board (live trips/pending/fleet in Supabase mode; ⚡ Ghép ngay, + Khách đi ngay) + fleet map (`FleetMap.jsx`) + analytics (`Analytics.jsx`) |
 | Tài xế | `src/modules/Drivers.jsx` | status filter tabs, approve KYC / suspend / unsuspend |
 | Bảng giá & Tuyến | `src/modules/Pricing.jsx` | editable price/km, surge slider, corridor toggle, car types |
 | Khuyến mãi | `src/modules/Promos.jsx` | promo table, usage progress, active toggle |
